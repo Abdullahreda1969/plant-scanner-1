@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار: وحدة عرض الصورة المصغرة</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 30px; }
+        button { padding: 12px 25px; font-size: 16px; margin: 10px; cursor: pointer; }
+        .test-area { margin: 30px auto; max-width: 500px; }
+    </style>
+</head>
+<body>
+    <h1>🖼️ اختبار وحدة thumbnail-display.js</h1>
+    <p>اختر صورة لرؤية الصورة المصغرة</p>
+    
+    <div class="test-area">
+        <!-- حاوية الصورة المصغرة ستُنشأ هنا -->
+        <div id="thumbnailContainer"></div>
+        
+        <button id="uploadBtn">📁 اختر صورة</button>
+        <button id="clearBtn">🗑️ مسح الصورة</button>
+    </div>
+    
+    <div id="fileInfo" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 8px;"></div>
+    
+    <script type="module">
+        // استيراد الوحدتين
+        import { setupUpload } from '../modules/upload-basic.js';
+        import { createThumbnailContainer, displayThumbnail } from '../modules/thumbnail-display.js';
+        
+        // إنشاء حاوية الصورة المصغرة
+        const container = createThumbnailContainer();
+        document.getElementById('thumbnailContainer').appendChild(container);
+        
+        // إعداد نظام الرفع
+        const uploader = setupUpload(function(file) {
+            // عرض الصورة المصغرة
+            displayThumbnail(container, file);
+            
+            // عرض معلومات الملف
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.innerHTML = `
+                <h3>📋 معلومات الملف:</h3>
+                <p><strong>الاسم:</strong> ${file.name}</p>
+                <p><strong>الحجم:</strong> ${(file.size / 1024).toFixed(2)} KB</p>
+                <p><strong>النوع:</strong> ${file.type}</p>
+                <p><strong>آخر تعديل:</strong> ${new Date(file.lastModified).toLocaleString()}</p>
+            `;
+        });
+        
+        // أحداث الأزرار
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            uploader.openFilePicker();
+        });
+        
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            container.innerHTML = '<p style="color:#888">الصورة المصغرة ستظهر هنا</p>';
+            document.getElementById('fileInfo').innerHTML = '';
+        });
+        
+        console.log('🔧 بدأ اختبار وحدة thumbnail-display.js');
+    </script>
+</body>
+</html>

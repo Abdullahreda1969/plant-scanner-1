@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار: تحويل الصور إلى Base64</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .container { display: flex; gap: 30px; margin-top: 30px; }
+        .left-panel, .right-panel { flex: 1; }
+        .preview-box { border: 2px solid #ddd; border-radius: 10px; padding: 20px; min-height: 300px; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+        textarea { width: 100%; height: 150px; font-family: monospace; font-size: 12px; }
+        .info-box { background: #f5f5f5; padding: 15px; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🔄 اختبار وحدة image-to-base64.js</h1>
+    <p>اختبر تحويل الصور إلى تنسيق base64 لإرسالها للـ API</p>
+    
+    <button id="uploadBtn">📁 اختر صورة للتحويل</button>
+    <button id="testSmallBtn">🧪 اختبار بصورة صغيرة</button>
+    
+    <div class="container">
+        <div class="left-panel">
+            <h3>معاينة الصورة</h3>
+            <div id="imagePreview" class="preview-box">
+                <p style="color: #888;">ستظهر الصورة هنا</p>
+            </div>
+        </div>
+        
+        <div class="right-panel">
+            <h3>نتيجة Base64</h3>
+            <div class="preview-box">
+                <textarea id="base64Output" placeholder="ستظهر نتيجة base64 هنا..." readonly></textarea>
+                <div style="margin-top: 10px;">
+                    <button id="copyBtn" disabled>📋 نسخ Base64</button>
+                    <button id="clearBtn">🗑️ مسح</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="infoBox" class="info-box">
+        <h4>معلومات التحويل:</h4>
+        <p>انتظر اختيار صورة...</p>
+    </div>
+    
+    <script type="module">
+        // استيراد الوحدات
+        import { setupUpload } from '../modules/upload-basic.js';
+        import { displayThumbnail } from '../modules/thumbnail-display.js';
+        import { convertImageToBase64, extractBase64Data, getImageInfo } from '../modules/image-to-base64.js';
+        
+        // عناصر DOM
+        const imagePreview = document.getElementById('imagePreview');
+        const base64Output = document.getElementById('base64Output');
+        const infoBox = document.getElementById('infoBox');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const testSmallBtn = document.getElementById('testSmallBtn');
+        
+        // إعداد نظام الرفع
+        const uploader = setupUpload(handleImageUpload);
+        
+        // دالة معالجة رفع الصورة
+        async function handleImageUpload(file) {
+            // عرض الصورة المصغرة
+            displayThumbnail(imagePreview, file);
+            
+            // عرض معلومات أولية
+            infoBox.innerHTML = `
+                <h4>⏳ جارٍ التحويل...</h4>
+                <p><strong>الملف:</strong> ${file.name}</p>
+                <p><strong>الحجم:</strong> ${(file.size / 1024).toFixed(2)} KB</p>
+            `;
+            
+            try {
+                // تحويل إلى base64
+                const base64 = await convertImageToBase64(file, 2000);
+                const cleanBase64 = extractBase64Data(base64);
+                const info = getImageInfo(base64);
+                
+                // عرض النتيجة
+                base64Output.value = cleanBase64.substring(0, 500) + 
+                    (cleanBase64.length > 500 ? '... [مختصر]' : '');
+                
+                // عرض المعلومات
+                infoBox.innerHTML = `
+                    <h4>✅ تم التحويل بنجاح!</h4>
+                    <p><strong>نوع الصورة:</strong> ${info.imageType}</p>
+                    <p><strong>الحجم المقدر:</strong> ${info.estimatedSizeKB} KB</p>
+                    <p><strong>طول نص Base64:</strong> ${base64.length} حرف</p>
+                    <p><strong>بداية النص:</strong> ${base64.substring(0, 50)}...</p>
+                    <p style="color: green; font-weight: bold;">✓ جاهز للإرسال إلى API</p>
+                `;
+                
+                // تفعيل زر النسخ
+                copyBtn.disabled = false;
+                copyBtn.textContent = '📋 نسخ Base64';
+                
+            } catch (error) {
+                infoBox.innerHTML = `
+                    <h4 style="color: red;">❌ فشل التحويل</h4>
+                    <p><strong>الخطأ:</strong> ${error.message}</p>
+                    <p>جرب صورة أصغر حجماً</p>
+                `;
+                base64Output.value = `خطأ: ${error.message}`;
+                copyBtn.disabled = true;
+            }
+        }
+        
+        // أحداث الأزرار
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            uploader.openFilePicker();
+        });
+        
+        copyBtn.addEventListener('click', () => {
+            base64Output.select();
+            document.execCommand('copy');
+            copyBtn.textContent = '✓ تم النسخ!';
+            setTimeout(() => {
+                copyBtn.textContent = '📋 نسخ Base64';
+            }, 2000);
+        });
+        
+        clearBtn.addEventListener('click', () => {
+            imagePreview.innerHTML = '<p style="color:#888">ستظهر الصورة هنا</p>';
+            base64Output.value = '';
+            infoBox.innerHTML = '<p>انتظر اختيار صورة...</p>';
+            copyBtn.disabled = true;
+        });
+        
+        // زر اختبار بصورة افتراضية صغيرة
+        testSmallBtn.addEventListener('click', async () => {
+            infoBox.innerHTML = '<p>جارٍ إنشاء صورة اختبارية...</p>';
+            
+            // إنشاء صورة اختبارية صغيرة (1x1 بكسل)
+            const canvas = document.createElement('canvas');
+            canvas.width = 50;
+            canvas.height = 50;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(0, 0, 50, 50);
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '12px Arial';
+            ctx.fillText('نبات', 10, 25);
+            
+            // تحويل إلى Blob ثم File
+            canvas.toBlob(async (blob) => {
+                const testFile = new File([blob], "test-plant.png", { type: "image/png" });
+                await handleImageUpload(testFile);
+            }, 'image/png');
+        });
+        
+        console.log('🔧 بدأ اختبار وحدة image-to-base64.js');
+    </script>
+</body>
+</html>

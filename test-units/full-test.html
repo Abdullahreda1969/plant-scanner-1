@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار التكامل الكامل</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .app-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .app-header {
+            background: linear-gradient(90deg, #2E7D32 0%, #4CAF50 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        .app-header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .app-header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        .app-body {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .app-body {
+                grid-template-columns: 1fr;
+            }
+        }
+        .upload-section, .results-section {
+            padding: 25px;
+            background: #F8F9FA;
+            border-radius: 15px;
+            border: 2px solid #E9ECEF;
+        }
+        .section-title {
+            color: #2E7D32;
+            margin-top: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #E9ECEF;
+        }
+        .upload-area {
+            border: 3px dashed #4CAF50;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #F1F8E9;
+            margin-bottom: 25px;
+        }
+        .upload-area:hover {
+            background: #E8F5E9;
+            border-color: #2E7D32;
+            transform: translateY(-3px);
+        }
+        .upload-icon {
+            font-size: 60px;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        .upload-text {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .upload-hint {
+            color: #888;
+            font-size: 14px;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .primary-btn {
+            background: linear-gradient(90deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+        }
+        .primary-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        .secondary-btn {
+            background: #6C757D;
+            color: white;
+        }
+        .secondary-btn:hover {
+            background: #5A6268;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .status-bar {
+            margin-top: 20px;
+            padding: 15px;
+            background: #E3F2FD;
+            border-radius: 10px;
+            border: 1px solid #BBDEFB;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            background: white;
+        }
+        .step:last-child {
+            margin-bottom: 0;
+        }
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .step.active .step-icon {
+            background: #4CAF50;
+            color: white;
+        }
+        .step.completed .step-icon {
+            background: #2E7D32;
+            color: white;
+        }
+        .step-text {
+            flex: 1;
+        }
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #FFF3E0;
+            border-radius: 10px;
+            border: 1px solid #FFE0B2;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <h1>🌿 ماسح أمراض النباتات</h1>
+            <p>التقط صورة لنبات مريض لمعرفة المرض وطرق العلاج</p>
+        </div>
+        
+        <div class="app-body">
+            <!-- القسم الأيسر: الرفع والمعاينة -->
+            <div class="upload-section">
+                <h2 class="section-title">📤 رفع الصورة</h2>
+                
+                <div class="upload-area" id="dropZone">
+                    <div class="upload-icon">🌿</div>
+                    <div class="upload-text">اسحب وأفلت صورة النبات هنا</div>
+                    <div class="upload-hint">أو انقر لاختيار صورة من جهازك</div>
+                </div>
+                
+                <div id="previewContainer" style="text-align: center; margin: 20px 0;">
+                    <!-- ستظهر الصورة المصغرة هنا -->
+                </div>
+                
+                <div class="buttons">
+                    <button class="primary-btn" id="uploadBtn">
+                        <span>📁</span> اختر صورة
+                    </button>
+                    <button class="secondary-btn" id="simulateBtn">
+                        <span>🧪</span> اختبار بالمحاكاة
+                    </button>
+                </div>
+                
+                <div class="status-bar">
+                    <h3 style="margin-top: 0; color: #2E7D32;">حالة النظام:</h3>
+                    <div class="step" id="step1">
+                        <div class="step-icon">1</div>
+                        <div class="step-text">رفع الصورة</div>
+                    </div>
+                    <div class="step" id="step2">
+                        <div class="step-icon">2</div>
+                        <div class="step-text">تحويل إلى Base64</div>
+                    </div>
+                    <div class="step" id="step3">
+                        <div class="step-icon">3</div>
+                        <div class="step-text">إرسال إلى API</div>
+                    </div>
+                    <div class="step" id="step4">
+                        <div class="step-icon">4</div>
+                        <div class="step-text">عرض النتائج</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- القسم الأيمن: النتائج -->
+            <div class="results-section">
+                <h2 class="section-title">📊 النتائج</h2>
+                
+                <div id="loading" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>جارٍ تحليل النبات...</p>
+                    <p style="color: #666; font-size: 14px;">هذا قد يستغرق بضع ثوانٍ</p>
+                </div>
+                
+                <div id="resultsContainer">
+                    <div style="text-align: center; padding: 40px; color: #888;">
+                        <div style="font-size: 60px; margin-bottom: 20px;">🌱</div>
+                        <h3 style="color: #666;">لم يتم رفع أي صورة بعد</h3>
+                        <p>اختر صورة نبات لبدء التحليل</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="padding: 20px 30px; background: #F5F5F5; border-top: 1px solid #E0E0E0;">
+            <div class="debug-info" id="debugInfo">
+                <strong>معلومات التصحيح:</strong><br>
+                جاهز للبدء...
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // استيراد جميع الوحدات
+        import { setupUpload } from '../modules/upload-basic.js';
+        import { displayThumbnail } from '../modules/thumbnail-display.js';
+        import { convertImageToBase64 } from '../modules/image-to-base64.js';
+        import { simulateAPIResponse } from '../modules/api-sender.js';
+        import { createResultsContainer, displayResults } from '../modules/result-displayer.js';
+        
+        // عناصر DOM
+        const dropZone = document.getElementById('dropZone');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const simulateBtn = document.getElementById('simulateBtn');
+        const previewContainer = document.getElementById('previewContainer');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loadingElement = document.getElementById('loading');
+        const debugInfo = document.getElementById('debugInfo');
+        const steps = {
+            step1: document.getElementById('step1'),
+            step2: document.getElementById('step2'),
+            step3: document.getElementById('step3'),
+            step4: document.getElementById('step4')
+        };
+        
+        // تحديث حالة الخطوات
+        function updateStep(stepNumber, status) {
+            // status: 'active', 'completed', 'inactive'
+            const step = steps[`step${stepNumber}`];
+            if (!step) return;
+            
+            step.classList.remove('active', 'completed');
+            if (status !== 'inactive') {
+                step.classList.add(status);
+            }
+        }
+        
+        // إضافة معلومات للتصحيح
+        function addDebugLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.innerHTML += `<br>[${timestamp}] ${message}`;
+            debugInfo.scrollTop = debugInfo.scrollHeight;
+        }
+        
+        // إعداد نظام الرفع
+        addDebugLog('🔧 جاري إعداد نظام رفع الملفات...');
+        const uploader = setupUpload(handleImageUpload);
+        
+        // دالة معالجة رفع الصورة
+        async function handleImageUpload(file) {
+            addDebugLog(`📁 تم رفع ملف: ${file.name} (${(file.size/1024).toFixed(1)}KB)`);
+            
+            // إعادة تعيين الواجهة
+            resultsContainer.innerHTML = '';
+            loadingElement.style.display = 'none';
+            updateStep(1, 'inactive');
+            updateStep(2, 'inactive');
+            updateStep(3, 'inactive');
+            updateStep(4, 'inactive');
+            
+            // الخطوة 1: رفع الصورة ✓
+            updateStep(1, 'active');
+            
+            // عرض الصورة المصغرة
+            previewContainer.innerHTML = '<h3>الصورة المرفوعة:</h3>';
+            const previewBox = document.createElement('div');
+            previewBox.style.cssText = `
+                width: 200px;
+                height: 200px;
+                margin: 10px auto;
+                border: 2px solid #4CAF50;
+                border-radius: 10px;
+                overflow: hidden;
+            `;
+            previewContainer.appendChild(previewBox);
+            displayThumbnail(previewBox, file);
+            
+            // الخطوة 2: تحويل إلى Base64
+            updateStep(1, 'completed');
+            updateStep(2, 'active');
+            addDebugLog('🔄 جاري تحويل الصورة إلى Base64...');
+            
+            try {
+                const base64 = await convertImageToBase64(file, 2000);
+                addDebugLog(`✅ تم التحويل بنجاح (${base64.length} حرف)`);
+                updateStep(2, 'completed');
+                
+                // الخطوة 3: إرسال إلى API (محاكاة)
+                updateStep(3, 'active');
+                addDebugLog('🌐 جاري الاتصال بـ PlantNet API (محاكاة)...');
+                
+                // إظهار مؤشر التحميل
+                loadingElement.style.display = 'block';
+                resultsContainer.innerHTML = '';
+                
+                // محاكاة API
+                const apiResponse = await simulateAPIResponse(base64);
+                addDebugLog(`✅ تم استلام رد API (${apiResponse.data?.results?.length || 0} نتيجة)`);
+                updateStep(3, 'completed');
+                
+                // الخطوة 4: عرض النتائج
+                updateStep(4, 'active');
+                
+                // إخفاء مؤشر التحميل
+                loadingElement.style.display = 'none';
+                
+                // إنشاء وعرض حاوية النتائج
+                const resultsDisplay = createResultsContainer();
+                resultsContainer.appendChild(resultsDisplay);
+                displayResults(resultsDisplay, apiResponse);
+                
+                updateStep(4, 'completed');
+                addDebugLog('🎉 اكتملت العملية بنجاح!');
+                
+            } catch (error) {
+                addDebugLog(`❌ خطأ: ${error.message}`);
+                resultsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #D32F2F;">
+                        <div style="font-size: 60px;">❌</div>
+                        <h3>حدث خطأ</h3>
+                        <p>${error.message}</p>
+                        <button onclick="location.reload()" style="
+                            padding: 10px 20px;
+                            background: #D32F2F;
+                            color: white;
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            margin-top: 20px;
+                        ">حاول مرة أخرى</button>
+                    </div>
+                `;
+            }
+        }
+        
+        // أحداث الأزرار
+        uploadBtn.addEventListener('click', () => {
+            uploader.openFilePicker();
+        });
+        
+        simulateBtn.addEventListener('click', async () => {
+            addDebugLog('🧪 بدء اختبار بالمحاكاة...');
+            
+            // إنشاء صورة اختبارية
+            const canvas = document.createElement('canvas');
+            canvas.width = 400;
+            canvas.height = 300;
+            const ctx = canvas.getContext('2d');
+            
+            // رسم نبات بسيط
+            ctx.fillStyle = '#8BC34A';
+            ctx.fillRect(0, 0, 400, 300); // خلفية
+            
+            // ساق
+            ctx.fillStyle = '#4CAF50';
+            ctx.fillRect(190, 100, 20, 150);
+            
+            // أوراق
+            ctx.beginPath();
+            ctx.ellipse(150, 120, 40, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(250, 120, 40, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // زهرة
+            ctx.fillStyle = '#FF9800';
+            ctx.beginPath();
+            ctx.arc(200, 80, 30, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // تحويل إلى ملف
+            canvas.toBlob(async (blob) => {
+                const testFile = new File([blob], "نبات-اختبار.png", { 
+                    type: "image/png",
+                    lastModified: new Date()
+                });
+                await handleImageUpload(testFile);
+            }, 'image/png');
+        });
+        
+        // دعم السحب والإفلات
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#E8F5E9';
+        });
+        
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#F1F8E9';
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.background = '#F1F8E9';
+            
+            if (e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                if (file.type.startsWith('image/')) {
+                    handleImageUpload(file);
+                } else {
+                    addDebugLog('❌ الملف المرفوع ليس صورة');
+                    alert('يرجى رفع ملف صورة فقط');
+                }
+            }
+        });
+        
+        // نقر على منطقة الرفع
+        dropZone.addEventListener('click', () => {
+            uploader.openFilePicker();
+        });
+        
+        addDebugLog('✅ التطبيق جاهز للاستخدام');
+        console.log('🚀 تم تحميل جميع الوحدات بنجاح');
+    </script>
+</body>
+</html>

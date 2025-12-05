@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار: وحدة رفع الملف الأساسية</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        button { padding: 15px 30px; font-size: 18px; cursor: pointer; }
+        #result { margin-top: 20px; padding: 15px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>🧪 اختبار وحدة upload-basic.js</h1>
+    <p>هذا اختبار منفصل للوحدة الأولى</p>
+    
+    <button id="testBtn">📁 اختر صورة نبات</button>
+    
+    <div id="result">
+        <p>ستظهر نتيجة الاختبار هنا...</p>
+    </div>
+    
+    <script type="module">
+        // استيراد الوحدة التي اخترناها
+        import { setupUpload } from '../modules/upload-basic.js';
+        
+        // إعداد نظام الرفع
+        const uploader = setupUpload(function(file) {
+            // هذه الدالة تُستدعى عند اختيار ملف
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <h3>✅ نجح الاختبار!</h3>
+                <p><strong>اسم الملف:</strong> ${file.name}</p>
+                <p><strong>الحجم:</strong> ${(file.size / 1024).toFixed(2)} كيلوبايت</p>
+                <p><strong>النوع:</strong> ${file.type}</p>
+                <p>الوحدة تعمل بشكل صحيح ✅</p>
+            `;
+        });
+        
+        // ربط الزر بفتح نافذة اختيار الملف
+        document.getElementById('testBtn').addEventListener('click', function() {
+            uploader.openFilePicker();
+        });
+        
+        console.log('🔧 بدأ اختبار الوحدة upload-basic.js');
+    </script>
+</body>
+</html>
