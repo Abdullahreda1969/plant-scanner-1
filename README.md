@@ -35,3 +35,28 @@
 - `test-units/full-test.html` - اختبار التكامل الكامل
 
 ## 📁 الهيكلية
+plant-scanner-1/
+├── modules/                    # 5 وحدات أساسية تعمل
+│   ├── upload-basic.js        ✅
+│   ├── thumbnail-display.js   ✅
+│   ├── image-to-base64.js     ✅
+│   ├── api-sender.js          ✅ (محاكاة)
+│   └── result-displayer.js    ✅
+├── test-units/                # صفحات اختبار
+│   ├── test-upload.html      ✅
+│   ├── test-thumbnail.html   ✅
+│   ├── test-base64.html      ✅
+│   └── full-test.html        ✅ (تكامل كامل)
+├── public/                    # للتطوير المستقبلي
+└── README.md                  # ملف التعريف
+
+## 🎯 الهدف التعليمي
+
+هذا المشروع يهدف إلى:
+- تعلم التطوير المعياري (Modular Development)
+- فهم كيفية عمل APIs مع الصور
+- بناء تطبيق كامل خطوة بخطوة
+
+## 📄 الرخصة
+
+مشروع تعليمي مفتوح المصدر.
